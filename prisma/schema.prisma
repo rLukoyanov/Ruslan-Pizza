@@ -4,28 +4,32 @@ generator client {
 
 datasource db {
     provider  = "postgresql"
-    url       = env("POSTGRES_URL")
-    directUrl = env("POSTGRES_URL_NON_POOLING")
+    url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
+    directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
 }
 
 model User {
     id Int @id @default(autoincrement())
 
     fullName String
-    email    String @unique
+    email    String    @unique
     password String
+    role     UserRole  @default(USER)
+    verified DateTime?
 
-    cart             Cart[]
-    order            Order[]
-    VerificationCode VerificationCode?
+    provider   String?
+    providerId String?
+
+    cart             Cart?
+    orders           Order[]
+    verificationCode VerificationCode?
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }
 
 model Category {
-    id Int @id @default(autoincrement())
-
+    id       Int       @id @default(autoincrement())
     name     String    @unique
     products Product[]
 
@@ -39,11 +43,11 @@ model Product {
     name     String
     imageUrl String
 
-    category   Category @relation(fields: [categoryId], references: [id])
-    categoryId Int
-
     ingredients Ingredient[]
     items       ProductItem[]
+
+    category   Category @relation(fields: [categoryId], references: [id])
+    categoryId Int
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -56,7 +60,7 @@ model ProductItem {
     size      Int?
     pizzaType Int?
 
-    cartItem CartItem[]
+    cartItems CartItem[]
 
     product   Product @relation(fields: [productId], references: [id])
     productId Int
@@ -69,8 +73,8 @@ model Ingredient {
     price    Int
     imageUrl String
 
-    products Product[]
-    cartItem CartItem[]
+    products  Product[]
+    cartItems CartItem[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -80,12 +84,13 @@ model Cart {
     id Int @id @default(autoincrement())
 
     user   User? @relation(fields: [userId], references: [id])
-    userId Int?
-
-    token       String
-    totalAmount Int    @default(0)
+    userId Int?  @unique
 
     items CartItem[]
+
+    token String
+
+    totalAmount Int @default(0)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -94,15 +99,15 @@ model Cart {
 model CartItem {
     id Int @id @default(autoincrement())
 
-    productItem   ProductItem @relation(fields: [productItemId], references: [id])
-    productItemId Int
-
     cart   Cart @relation(fields: [cartId], references: [id])
     cartId Int
 
-    ingredients Ingredient[]
+    productItem   ProductItem @relation(fields: [productItemId], references: [id])
+    productItemId Int
 
-    quantity Int
+    quantity Int @default(1)
+
+    ingredients Ingredient[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -114,11 +119,11 @@ model Order {
     user   User? @relation(fields: [userId], references: [id])
     userId Int?
 
-    token       String
-    totalAmount Int
+    token String
 
-    status    OrderStatus
-    paymentId String?
+    totalAmount Int
+    status      OrderStatus
+    paymentId   String?
 
     items Json
 
@@ -167,6 +172,11 @@ model StoryItem {
 
 enum OrderStatus {
     PENDING
-    SUCCESSDED
-    CANCELED
+    SUCCEEDED
+    CANCELLED
+}
+
+enum UserRole {
+    USER
+    ADMIN
 }
