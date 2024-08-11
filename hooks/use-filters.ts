@@ -1,6 +1,5 @@
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useSet } from "react-use";
-import { useIngredients } from "./use-ingrefients";
 import React from "react";
 
 interface PriceProps {
