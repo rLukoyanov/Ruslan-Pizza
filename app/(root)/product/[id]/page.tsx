@@ -1,15 +1,20 @@
-import { Container, ProductImage, Title } from "@/components/shared";
-import { GroupVariants } from "@/components/shared/group-variants";
+import { Container, ProductImage, Title } from "@/shared/components/shared";
+import { GroupVariants } from "@/shared/components/shared/group-variants";
 import { prisma } from "@/prisma/prisma-client";
 import { notFound } from "next/navigation";
 import React from "react";
 
-const ProductPage = async ({ params: { id } }: { params: { id: string } }) => {
+export default async function ProductPage({
+  params: { id },
+}: {
+  params: { id: string };
+}) {
   const product = await prisma.product.findFirst({ where: { id: Number(id) } });
 
   if (!product) {
     return notFound();
   }
+
   return (
     <Container className="flex my-10 ">
       <div className="flex flex-1">
@@ -35,6 +40,4 @@ const ProductPage = async ({ params: { id } }: { params: { id: string } }) => {
       </div>
     </Container>
   );
-};
-
-export default ProductPage;
+}
